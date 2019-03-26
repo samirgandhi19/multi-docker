@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t samirgandhi/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run run samirgandhi/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t samirgandhi/multi-client ./client
+  - docker build -t samirgandhi/multi-nginx ./nginx
+  - docker build -t samirgandhi/multi-server ./server
+  - docker build -t samirgandhi/multi-worker ./worker
+  #log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push images to docker hub
+  - docker push samirgandhi/multi-client
+  - docker push samirgandhi/multi-nginx
+  - docker push samirgandhi/multi-server
+  - docker push samirgandhi/multi-worker
